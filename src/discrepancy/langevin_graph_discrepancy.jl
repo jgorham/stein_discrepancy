@@ -150,8 +150,8 @@ function langevin_graph_discrepancy(sample::SteinDiscrete,
         solvetime[j] = toc()
         # Package the results
         objval[j] = getObjectiveValue(m)
-        gopt[:,j] = getValue(g).innerArray[1:n]
-        gradgopt[:,:,j] = getValue(gradg).innerArray[1:n, 1:d]
+        gopt[:,j] = getValue(g)[1:n]
+        gradgopt[:,:,j] = getValue(gradg)[1:n, 1:d]
     end
     # Compute (T_Pg)(x) = <grad, g(x)> + <g(x),grad log p(x)>
     operatorgopt = sum(gopt .* gradlogdensities,2)
