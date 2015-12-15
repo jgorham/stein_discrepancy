@@ -34,17 +34,19 @@ the src/distributions folder, feel free to roll your own.
 
 Once you have this target in hand, the rest is easy. Here's a quick example:
 
-> # do the necessary imports
-> using SteinDistributions: SteinUniform
-> using SteinDiscrepancy: stein_discrepancy
-> # creates a uniform distribution on [0,1]^2
-> target = SteinUniform(2)
-> # generates 100 points
-> X = rand(target, 100)
-> # can be a string or a JuMP solver
-> solver = "gurobi"
-> result = stein_discrepancy(points=X, target=target, solver=solver)
-> discrepancy = vec(result.objective_value)
+```
+# do the necessary imports
+using SteinDistributions: SteinUniform
+using SteinDiscrepancy: stein_discrepancy
+# creates a uniform distribution on [0,1]^2
+target = SteinUniform(2)
+# generates 100 points
+X = rand(target, 100)
+# can be a string or a JuMP solver
+solver = "gurobi"
+result = stein_discrepancy(points=X, target=target, solver=solver)
+discrepancy = vec(result.objective_value)
+```
 
 The variable `discrepancy` here will encode the Stein discrepancy along each
 dimension. The final discrepancy is just the sum of this vector.
@@ -57,7 +59,7 @@ computing the stein_discrepancy are in the src/experiments directory
 is a good first one to examine).
 
 Make sure to include startup.jl so all the paths are properly set up.
-To do so, after opening the julia REPL, enter 'include("src/startup.jl")'
+To do so, after opening the julia REPL, enter `include("src/startup.jl")`
 at the command prompt.
 
 ### Contents of src
@@ -83,11 +85,15 @@ The code should be compiled when startup.jl is first invoked. However,
 if this doesn't work for some reason, here's all you need to know for compiling
 the code in discrepancy/spanner:
 
-> cd discrepancy/spanner
-> make
-> make clean
+```
+cd discrepancy/spanner
+make
+make clean
+```
 
 The last step isn't necessary, but it will remove some superfluous
 files. If you want to kill everything made in the build process, just run
 
-> make distclean
+```
+make distclean
+```
