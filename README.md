@@ -43,7 +43,7 @@ target = SteinUniform(2)
 # generates 100 points
 X = rand(target, 100)
 # can be a string or a JuMP solver
-solver = "gurobi"
+solver = "clp"
 result = stein_discrepancy(points=X, target=target, solver=solver)
 discrepancy = vec(result.objective_value)
 ```
