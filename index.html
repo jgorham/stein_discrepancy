@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Stein discrepancy by jgorham</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Stein discrepancy</h1>
+        <h2>A practical tool for quantifying how well a sample approximates a target distribution</h2>
+        <a href="https://github.com/jgorham/stein_discrepancy" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="steindiscrepancyjl" class="anchor" href="#steindiscrepancyjl" aria-hidden="true"><span class="octicon octicon-link"></span></a>SteinDiscrepancy.jl</h1>
+
+<h2>
+<a id="what-is-this-so-called-stein-discrepancy" class="anchor" href="#what-is-this-so-called-stein-discrepancy" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is this so-called Stein Discrepancy?</h2>
+
+<p>To improve the efficiency of Monte Carlo estimation, practitioners are
+turning to biased Markov chain Monte Carlo procedures that trade off
+asymptotic exactness for computational speed. The reasoning is sound: a
+reduction in variance due to more rapid sampling can outweigh the bias
+introduced. However, the inexactness creates new challenges for sampler and
+parameter selection, since standard measures of sample quality like
+effective sample size do not account for asymptotic bias. To address these
+challenges, we introduce a new computable quality measure that quantifies
+the maximum discrepancy between sample and target expectations over a large
+class of test functions. This measure is what we are calling the
+Stein discrepancy.</p>
+
+<p>For a more detailed explanation, take a peek at the original paper:</p>
+
+<p><a href="http://arxiv.org/abs/1506.03039">Measuring Sample Quality with Stein's Method</a></p>
+
+<h2>
+<a id="so-how-do-i-use-it" class="anchor" href="#so-how-do-i-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>So how do I use it?</h2>
+
+<p>Computing the vanilla Stein discrepancy requires solving a linear program (LP), and
+thus you'll need some kind of LP solver installed to use this
+software. We use JuMP to interface with these solvers; any of the supported
+LP solvers with do just fine.</p>
+
+<p>Assuming you have an LP solver installed, computing our measure is easy.
+First, you must have a target distribution in mind. Because we must use
+information about that distribution's log density and its gradients, we
+encode this information in the subclass of a <code>SteinDistribution</code>. If your
+desired distribution isn't available as one of the distributions found in
+the src/distributions folder, feel free to roll your own.</p>
+
+<p>Once you have this target in hand, the rest is easy. Here's a quick example:</p>
+
+<pre><code># do the necessary imports
+using SteinDistributions: SteinUniform
+using SteinDiscrepancy: stein_discrepancy
+# creates a uniform distribution on [0,1]^2
+target = SteinUniform(2)
+# generates 100 points
+X = rand(target, 100)
+# can be a string or a JuMP solver
+solver = "clp"
+result = stein_discrepancy(points=X, target=target, solver=solver)
+discrepancy = vec(result.objective_value)
+</code></pre>
+
+<p>The variable <code>discrepancy</code> here will encode the Stein discrepancy along each
+dimension. The final discrepancy is just the sum of this vector.</p>
+
+<h2>
+<a id="summary-of-the-code" class="anchor" href="#summary-of-the-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Summary of the Code</h2>
+
+<p>All code is available in the src directory of the repo. Many examples
+computing the stein_discrepancy are in the src/experiments directory
+(the experiment sample_target_mismatch-multivariate_uniform_vs_beta
+is a good first one to examine).</p>
+
+<p>Make sure to include startup.jl so all the paths are properly set up.
+To do so, after opening the julia REPL, enter <code>include("src/startup.jl")</code>
+at the command prompt.</p>
+
+<h3>
+<a id="contents-of-src" class="anchor" href="#contents-of-src" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contents of src</h3>
+
+<ul>
+<li>startup.jl - Adds project module locations to LOAD_PATH</li>
+<li>discrepancy - Code for computing Stein discrepancy</li>
+<li>distributions - Types representing probability distributions</li>
+<li>experiments - Code for running experiments</li>
+<li>samplers - Code implementing the samplers of study</li>
+<li>visualization - R scripts to create visualizations for the results</li>
+</ul>
+
+<h3>
+<a id="conventions" class="anchor" href="#conventions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conventions</h3>
+
+<ul>
+<li>Use lowercase file names (with underscores if needed for clarity) for scripts</li>
+<li>Use camel case with initial capital letter for defining types and modules</li>
+<li>Use lowercase (with underscores if needed for clarity) for variables and
+functions (unless there are other prevailing conventions like X representing
+a data matrix)</li>
+</ul>
+
+<h3>
+<a id="compiling-code-in-discrepancyspanner-directory" class="anchor" href="#compiling-code-in-discrepancyspanner-directory" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compiling Code in discrepancy/spanner directory</h3>
+
+<p>The code should be compiled when startup.jl is first invoked. However,
+if this doesn't work for some reason, here's all you need to know for compiling
+the code in discrepancy/spanner:</p>
+
+<pre><code>cd discrepancy/spanner
+make
+make clean
+</code></pre>
+
+<p>The last step isn't necessary, but it will remove some superfluous
+files. If you want to kill everything made in the build process, just run</p>
+
+<pre><code>make distclean
+</code></pre>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/jgorham/stein_discrepancy/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/jgorham/stein_discrepancy/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/jgorham/stein_discrepancy"></a> is maintained by <a href="https://github.com/jgorham">jgorham</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
