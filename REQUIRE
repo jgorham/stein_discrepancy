@@ -1,5 +1,4 @@
 julia 0.3 0.4
-Clp 0.1.1
 DataStructures 0.3.13
 Distributions 0.8.7
 Iterators 0.1.9
@@ -8,5 +7,4 @@ JuMP 0.10.3
 MAT 0.2.14
 NumericExtensions 0.6.2
 RDatasets 0.1.2
-Sobol 0.1.2
 StatsBase 0.7.4
