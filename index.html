@@ -40,7 +40,7 @@ asymptotic exactness for computational speed. The reasoning is sound: a
 reduction in variance due to more rapid sampling can outweigh the bias
 introduced. However, the inexactness creates new challenges for sampler and
 parameter selection, since standard measures of sample quality like
-effective sample size do not account for asymptotic bias. To address these
+effective sample size (ESS) do not account for asymptotic bias. To address these
 challenges, we introduce a new computable quality measure that quantifies
 the maximum discrepancy between sample and target expectations over a large
 class of test functions. This measure is what we are calling the
@@ -49,7 +49,7 @@ Stein discrepancy.</p>
 <p>For a more detailed explanation, take a peek at the original paper:</p>
 
 <p><a href="http://arxiv.org/abs/1506.03039">Measuring Sample Quality with Stein's Method</a>
-by [Lester Mackey][<a href="http://web.stanford.edu/%7Elmackey/">http://web.stanford.edu/~lmackey/</a>] and [Jackson Gorham][<a href="https://github.com/jgorham">https://github.com/jgorham</a>].</p>
+by <a href="http://web.stanford.edu/%7Elmackey/">Lester Mackey</a> and <a href="https://github.com/jgorham">Jackson Gorham</a>.</p>
 
 <h2>
 <a id="so-how-do-i-use-it" class="anchor" href="#so-how-do-i-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>So how do I use it?</h2>
@@ -64,7 +64,7 @@ First, you must have a target distribution in mind. Because we must use
 information about that distribution's log density and its gradients, we
 encode this information in the subclass of a <code>SteinDistribution</code>. If your
 desired distribution isn't available as one of the distributions found in
-the src/distributions folder, feel free to roll your own.</p>
+the <code>src/distributions</code> directory, feel free to roll your own.</p>
 
 <p>Once you have this target in hand, the rest is easy. Here's a quick example:</p>
 
@@ -97,7 +97,7 @@ more information on the return value of stein_discrepancy, see the file
 
 <p>All code is available in the src directory of the repo. Many examples
 computing the stein_discrepancy are in the <code>src/experiments</code> directory
-(the experiment sample_target_mismatch-multivariate_uniform_vs_beta
+(the experiment <code>sample_target_mismatch-multivariate_uniform_vs_beta.jl</code>
 is a good first one to examine).</p>
 
 <p>Make sure to include <code>src/startup.jl</code> so all the paths are properly set up,
@@ -118,11 +118,11 @@ as described previously.</p>
 <h3>
 <a id="compiling-code-in-discrepancyspanner-directory" class="anchor" href="#compiling-code-in-discrepancyspanner-directory" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compiling Code in discrepancy/spanner directory</h3>
 
-<p>The code should be compiled when startup.jl is first invoked. However,
+<p>The code should be compiled when <code>src/startup.jl</code> is first invoked. However,
 if this doesn't work for some reason, here's all you need to know for compiling
-the code in discrepancy/spanner:</p>
+the code in <code>src/discrepancy/spanner</code>:</p>
 
-<pre><code>cd discrepancy/spanner
+<pre><code>cd src/discrepancy/spanner
 make
 make clean
 </code></pre>
