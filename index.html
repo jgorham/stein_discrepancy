@@ -48,7 +48,8 @@ Stein discrepancy.</p>
 
 <p>For a more detailed explanation, take a peek at the original paper:</p>
 
-<p><a href="http://arxiv.org/abs/1506.03039">Measuring Sample Quality with Stein's Method</a></p>
+<p><a href="http://arxiv.org/abs/1506.03039">Measuring Sample Quality with Stein's Method</a>
+by [Lester Mackey][<a href="http://web.stanford.edu/%7Elmackey/">http://web.stanford.edu/~lmackey/</a>] and [Jackson Gorham][<a href="https://github.com/jgorham">https://github.com/jgorham</a>].</p>
 
 <h2>
 <a id="so-how-do-i-use-it" class="anchor" href="#so-how-do-i-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>So how do I use it?</h2>
@@ -67,10 +68,16 @@ the src/distributions folder, feel free to roll your own.</p>
 
 <p>Once you have this target in hand, the rest is easy. Here's a quick example:</p>
 
-<pre><code># do the necessary imports
+<pre><code># cd to the base directory of this software
+cd &lt;path/to/stein_discrepancy&gt;
+# launch the Julia REPL
+julia
+# once shell is loaded, include all necessarily files
+include("src/startup.jl")
+# do the necessary imports
 using SteinDistributions: SteinUniform
 using SteinDiscrepancy: stein_discrepancy
-# creates a uniform distribution on [0,1]^2
+# create a uniform distribution on [0,1]^2
 target = SteinUniform(2)
 # generates 100 points
 X = rand(target, 100)
@@ -81,19 +88,20 @@ discrepancy = vec(result.objective_value)
 </code></pre>
 
 <p>The variable <code>discrepancy</code> here will encode the Stein discrepancy along each
-dimension. The final discrepancy is just the sum of this vector.</p>
+dimension (the total discrepancy is just the sum of this vector). For
+more information on the return value of stein_discrepancy, see the file
+<code>src/discrepancy/LangevinDiscrepancyResult.jl</code>.</p>
 
 <h2>
-<a id="summary-of-the-code" class="anchor" href="#summary-of-the-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Summary of the Code</h2>
+<a id="summary-of-this-repo" class="anchor" href="#summary-of-this-repo" aria-hidden="true"><span class="octicon octicon-link"></span></a>Summary of this Repo</h2>
 
 <p>All code is available in the src directory of the repo. Many examples
-computing the stein_discrepancy are in the src/experiments directory
+computing the stein_discrepancy are in the <code>src/experiments</code> directory
 (the experiment sample_target_mismatch-multivariate_uniform_vs_beta
 is a good first one to examine).</p>
 
-<p>Make sure to include startup.jl so all the paths are properly set up.
-To do so, after opening the julia REPL, enter <code>include("src/startup.jl")</code>
-at the command prompt.</p>
+<p>Make sure to include <code>src/startup.jl</code> so all the paths are properly set up,
+as described previously.</p>
 
 <h3>
 <a id="contents-of-src" class="anchor" href="#contents-of-src" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contents of src</h3>
@@ -105,17 +113,6 @@ at the command prompt.</p>
 <li>experiments - Code for running experiments</li>
 <li>samplers - Code implementing the samplers of study</li>
 <li>visualization - R scripts to create visualizations for the results</li>
-</ul>
-
-<h3>
-<a id="conventions" class="anchor" href="#conventions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conventions</h3>
-
-<ul>
-<li>Use lowercase file names (with underscores if needed for clarity) for scripts</li>
-<li>Use camel case with initial capital letter for defining types and modules</li>
-<li>Use lowercase (with underscores if needed for clarity) for variables and
-functions (unless there are other prevailing conventions like X representing
-a data matrix)</li>
 </ul>
 
 <h3>
