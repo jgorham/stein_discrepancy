@@ -14,27 +14,37 @@ the maximum discrepancy between sample and target expectations over a large
 class of test functions. This measure is what we are calling the
 Stein discrepancy.
 
-For a more detailed explanation, take a peek at the original paper:
+For a more detailed explanation, take a peek at the original paper,
 
-[Measuring Sample Quality with Stein's Method](http://arxiv.org/abs/1506.03039)
+[Measuring Sample Quality with Stein's Method](http://arxiv.org/abs/1506.03039).
+
+To learn more about how the Stein discrepancy bounds standard probability metrics, 
+like the [L1-Wasserstein distance](https://en.wikipedia.org/wiki/Wasserstein_metric), see 
+
+[Multivariate Stein Factors for Strongly Log-concave Distributions](http://arxiv.org/abs/1512.07392).
 
 ## So how do I use it?
 
 Computing the vanilla Stein discrepancy requires solving a linear program (LP), and
 thus you'll need some kind of LP solver installed to use this
-software. We use JuMP to interface with these solvers; any of the supported
-LP solvers with do just fine.
+software. We use JuMP ([Julia for Mathematical Programming](https://jump.readthedocs.org/en/latest/)) 
+to interface with these solvers; any of the supported JuMP LP solvers with do just fine.
 
 Assuming you have an LP solver installed, computing our measure is easy.
-First, you must have a target distribution in mind. Because we must use
-information about that distribution's log density and its gradients, we
-encode this information in the subclass of a `SteinDistribution`. If your
-desired distribution isn't available as one of the distributions found in
-the src/distributions folder, feel free to roll your own.
+First, you must have a target distribution in mind. 
+We represent each target distribution as a class (specifically, a
+subclass of a `SteinDistribution`) and encode all relevant
+information about the target (like the gradient of its log
+density) in that class. 
+Various examples of target distributions can be found in the
+src/distributions.  Feel free to add your own!
 
-Once you have this target in hand, the rest is easy. Here's a quick example:
+Once you have this target in hand, the rest is easy. Here's a quick example
+that you can run from the base directory (the parent directory of src):
 
 ```
+# set up source paths, and compile C++ code
+include("src/startup.jl")
 # do the necessary imports
 using SteinDistributions: SteinUniform
 using SteinDiscrepancy: stein_discrepancy
@@ -81,9 +91,9 @@ at the command prompt.
 
 ### Compiling Code in discrepancy/spanner directory
 
-The code should be compiled when startup.jl is first invoked. However,
-if this doesn't work for some reason, here's all you need to know for compiling
-the code in discrepancy/spanner:
+Our C++ code should be compiled when startup.jl is first invoked. However,
+if this doesn't work for some reason, you can issue the following
+commands to compile the code in discrepancy/spanner:
 
 ```
 cd discrepancy/spanner
