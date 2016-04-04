@@ -18,24 +18,31 @@ For a more detailed explanation, take a peek at the original paper,
 
 [Measuring Sample Quality with Stein's Method](http://arxiv.org/abs/1506.03039).
 
-To learn more about how the Stein discrepancy bounds standard probability metrics, 
-like the [L1-Wasserstein distance](https://en.wikipedia.org/wiki/Wasserstein_metric), see 
+To learn more about how the Stein discrepancy bounds standard probability metrics,
+like the [L1-Wasserstein distance](https://en.wikipedia.org/wiki/Wasserstein_metric), see
 
 [Multivariate Stein Factors for Strongly Log-concave Distributions](http://arxiv.org/abs/1512.07392).
 
 ## So how do I use it?
 
+This software was written when Julia v0.3 was the most recent version of
+Julia available. Accordingly, this code must be used with Julia v0.3, which
+can still be downloaded
+[here](http://julialang.org/downloads/oldreleases.html). We're working on
+many updates to the current software, so we hope to release the version
+which is compatible with v0.4 and beyond soon!
+
 Computing the vanilla Stein discrepancy requires solving a linear program (LP), and
 thus you'll need some kind of LP solver installed to use this
-software. We use JuMP ([Julia for Mathematical Programming](https://jump.readthedocs.org/en/latest/)) 
+software. We use JuMP ([Julia for Mathematical Programming](https://jump.readthedocs.org/en/latest/))
 to interface with these solvers; any of the supported JuMP LP solvers with do just fine.
 
 Assuming you have an LP solver installed, computing our measure is easy.
-First, you must have a target distribution in mind. 
+First, you must have a target distribution in mind.
 We represent each target distribution as a class (specifically, a
 subclass of a `SteinDistribution`) and encode all relevant
 information about the target (like the gradient of its log
-density) in that class. 
+density) in that class.
 Various examples of target distributions can be found in the
 src/distributions.  Feel free to add your own!
 
