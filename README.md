@@ -21,7 +21,7 @@ For a more detailed explanation, take a peek at the original paper,
 To learn more about how the Stein discrepancy bounds standard probability metrics,
 like the [L1-Wasserstein distance](https://en.wikipedia.org/wiki/Wasserstein_metric), see
 
-[Multivariate Stein Factors for Strongly Log-concave Distributions](http://arxiv.org/abs/1512.07392).
+[Multivariate Stein Factors for a Class of Strongly Log-concave Distributions](http://arxiv.org/abs/1512.07392).
 
 ## So how do I use it?
 
