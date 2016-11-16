@@ -49,41 +49,46 @@ the maximum discrepancy between sample and target expectations over a large
 class of test functions. This measure is what we are calling the
 Stein discrepancy.</p>
 
-<p>For a more detailed explanation, take a peek at the original paper,</p>
+<p>For a more detailed explanation, take a peek at the latest paper:</p>
 
-<p><a href="http://arxiv.org/abs/1506.03039">Measuring Sample Quality with Stein's Method</a>.</p>
+<p><a href="http://arxiv.org/abs/1506.03039">Measuring Sample Quality with Diffusions</a>.</p>
 
-<p>To learn more about how the Stein discrepancy bounds standard probability metrics,
-like the <a href="https://en.wikipedia.org/wiki/Wasserstein_metric">L1-Wasserstein distance</a>, see</p>
+<p>This builds on previous work from</p>
 
-<p><a href="http://arxiv.org/abs/1512.07392">Multivariate Stein Factors for Strongly Log-concave Distributions</a>.</p>
+<p><a href="http://arxiv.org/abs/1506.03039">Measuring Sample Quality with Stein's Method</a></p>
+
+<p>and its companion paper</p>
+
+<p><a href="http://arxiv.org/abs/1512.07392">Multivariate Stein Factors for a Class of Strongly Log-concave
+Distributions</a>.</p>
+
+<p>These latter two papers are more gentle introduction describing how the
+Stein discrepancy bounds standard probability metrics like the
+<a href="https://en.wikipedia.org/wiki/Wasserstein_metric">L1-Wasserstein distance</a>.</p>
 
 <h2>
 <a id="so-how-do-i-use-it" class="anchor" href="#so-how-do-i-use-it" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>So how do I use it?</h2>
 
-<p>This software was written when Julia v0.3 was the most recent version of
-Julia available. Accordingly, this code must be used with Julia v0.3, which
-can still be downloaded
-<a href="http://julialang.org/downloads/oldreleases.html">here</a>. We're working on
-many updates to the current software, so we hope to release the version
-which is compatible with v0.4 and beyond soon!</p>
-
-<p>Computing the vanilla Stein discrepancy requires solving a linear program (LP), and
-thus you'll need some kind of LP solver installed to use this
-software. We use JuMP (<a href="https://jump.readthedocs.org/en/latest/">Julia for Mathematical Programming</a>)
-to interface with these solvers; any of the supported JuMP LP solvers with do just fine.</p>
+<p>This software has been tested on Julia v0.4.5. Computing the Stein
+discrepancy requires solving a linear program (LP), and thus you'll need
+some kind of LP solver installed to use this software. We use JuMP (<a href="https://jump.readthedocs.org/en/latest/">Julia
+for Mathematical Programming</a>) to
+interface with these solvers; any of the supported JuMP LP solvers with do
+just fine.</p>
 
 <p>Assuming you have an LP solver installed, computing our measure is easy.
-First, you must have a target distribution in mind.
-We represent each target distribution as a class (specifically, a
-subclass of a <code>SteinDistribution</code>) and encode all relevant
-information about the target (like the gradient of its log
-density) in that class.
-Various examples of target distributions can be found in the
-src/distributions.  Feel free to add your own!</p>
+First, clone this repo [or download it as a tarbell] in a directory of your
+choosing. Next, you must have a target distribution in mind.  We represent
+each target distribution as a class (specifically, a subclass of a
+<code>SteinDistribution</code>) and encode all relevant information about the target
+(like the gradient of its log density) in that class. Various examples of
+target distributions can be found in the src/distributions. Feel free to add
+your own!</p>
 
 <p>Once you have this target in hand, the rest is easy. Here's a quick example
-that you can run from the base directory (the parent directory of src):</p>
+that you can run from the base directory (the parent directory of
+src). After you fire up julia from the command line, the following commands
+will compute the Langevin Stein discrepancy for a bivariate uniform sample:</p>
 
 <pre><code># set up source paths, and compile C++ code
 include("src/startup.jl")
@@ -107,13 +112,14 @@ dimension. The final discrepancy is just the sum of this vector.</p>
 <a id="summary-of-the-code" class="anchor" href="#summary-of-the-code" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Summary of the Code</h2>
 
 <p>All code is available in the src directory of the repo. Many examples
-computing the stein_discrepancy are in the src/experiments directory
-(the experiment sample_target_mismatch-multivariate_uniform_vs_beta
-is a good first one to examine).</p>
+computing the stein_discrepancy are in the src/experiments directory. Tthe
+experiment multimodal_gmm_langevin_floor is a good first one to examine. To
+see an example that goes beyond the Langevin Stein discrepancy, see the
+experiment compare-hyperparameters-multivariatetpseudohuber.</p>
 
 <p>Make sure to include startup.jl so all the paths are properly set up.
-To do so, after opening the julia REPL, enter <code>include("src/startup.jl")</code>
-at the command prompt.</p>
+(to do this, after opening the julia REPL, enter <code>include("src/startup.jl")</code>
+at the command prompt)</p>
 
 <h3>
 <a id="contents-of-src" class="anchor" href="#contents-of-src" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contents of src</h3>
@@ -135,7 +141,7 @@ at the command prompt.</p>
 <li>Use camel case with initial capital letter for defining types and modules</li>
 <li>Use lowercase (with underscores if needed for clarity) for variables and
 functions (unless there are other prevailing conventions like X representing
-a data matrix)</li>
+  a data matrix)</li>
 </ul>
 
 <h3>
