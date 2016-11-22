@@ -1,6 +1,6 @@
 # SteinDiscrepancy.jl
 
-## What is this so-called Stein Discrepancy?
+## What is this so-called Stein discrepancy?
 
 To improve the efficiency of Monte Carlo estimation, practitioners are
 turning to biased Markov chain Monte Carlo procedures that trade off
@@ -16,7 +16,7 @@ Stein discrepancy.
 
 For a more detailed explanation, take a peek at the latest paper:
 
-[Measuring Sample Quality with Diffusions](http://arxiv.org/abs/1506.03039).
+[Measuring Sample Quality with Diffusions](https://arxiv.org/abs/1611.06972).
 
 This builds on previous work from
 
@@ -27,7 +27,7 @@ and its companion paper
 [Multivariate Stein Factors for a Class of Strongly Log-concave
 Distributions](http://arxiv.org/abs/1512.07392).
 
-These latter two papers are more gentle introduction describing how the
+These latter two papers are a more gentle introduction describing how the
 Stein discrepancy bounds standard probability metrics like the
 [L1-Wasserstein distance](https://en.wikipedia.org/wiki/Wasserstein_metric).
 
@@ -76,7 +76,7 @@ dimension. The final discrepancy is just the sum of this vector.
 ## Summary of the Code
 
 All code is available in the src directory of the repo. Many examples
-computing the stein_discrepancy are in the src/experiments directory. Tthe
+computing the stein_discrepancy are in the src/experiments directory. The
 experiment multimodal_gmm_langevin_floor is a good first one to examine. To
 see an example that goes beyond the Langevin Stein discrepancy, see the
 experiment compare-hyperparameters-multivariatetpseudohuber.
