@@ -1,0 +1,13 @@
+julia 0.5
+DataFrames 0.8.5
+DataStructures 0.4.6
+Distributions 0.11.1
+Iterators 0.2.0
+JSON 0.8.0
+JuMP 0.15.0
+MAT 0.3.1
+MNIST 0.0.2
+Optim 0.7.3
+RDatasets 0.2.0
+StatsBase 0.12.0
+StatsFuns 0.3.1
