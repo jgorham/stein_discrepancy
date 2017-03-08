@@ -34,8 +34,9 @@ Stein discrepancy bounds standard probability metrics like the
 
 ## So how do I use it?
 
-This software has been tested on Julia v0.5.0. There are currently two
-broads classes of Stein discrepancies: graph and kernel.
+This software has been tested on Julia v0.5.0. This release implements two
+classes of Stein discrepancies: graph Stein discrepancies and kernel Stein
+discrepancies.
 
 ### Graph Stein discrepancies
 
