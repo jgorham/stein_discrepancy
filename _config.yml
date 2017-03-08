@@ -1,0 +1,8 @@
+title: Stein Discrepancy
+description: A practical tool for quantifying how well a sample approximates a target distribution
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-slate
+
+gems:
+  - jekyll-mentions
