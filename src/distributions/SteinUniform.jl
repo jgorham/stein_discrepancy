@@ -24,14 +24,15 @@ SteinUniform() = SteinUniform(1)
 
 # Draw n independent samples from distribution
 function rand(d::SteinUniform, n::Int64)
-    p = size(d.range, 2);
+    p = size(d.range, 2)
     # Sample uniform [0,1] variables
-    x = zeros(n, p);
-    rand!(x);
+    x = zeros(n, p)
+    rand!(x)
     # Shift and scale as needed
-    shift = d.range[1,:];
-    scale = (d.range[2,:] - d.range[1,:]);
-    (x .* scale) .+ shift;
+    shift = d.range[1,:]
+    scale = (d.range[2,:] - d.range[1,:])
+    scaled_x = broadcast(*, x, scale')
+    broadcast(+, scaled_x, shift')
 end
 
 function supportlowerbound(d::SteinUniform, j::Int64)
@@ -50,6 +51,7 @@ end
 
 # Cumulative distribution function (only valid when X is univariate)
 function cdf(d::SteinUniform,t)
+    @assert numdimensions(d) == 1
     lower = supportlowerbound(d,1);
     upper = supportupperbound(d,1);
     min(max((t-lower)/(upper-lower),0),1);
