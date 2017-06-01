@@ -45,6 +45,10 @@ end
 
 # Gradient of log density of distribution evaluated at each row of
 # n x p matrix X
+function gradlogdensity(d::SteinUniform, X::Array{Float64,1})
+    zeros(size(X));
+end
+
 function gradlogdensity(d::SteinUniform, X::Array{Float64,2})
     zeros(size(X));
 end
