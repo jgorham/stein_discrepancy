@@ -5,9 +5,9 @@ experiments here use the Julia package
 [SteinDiscrepancy.jl](https://github.com/jgorham/SteinDiscrepancy.jl) and
 implement all the experiments from the following papers:
 
-[Measuring Sample Quality with Stein's Method](http://arxiv.org/abs/1506.03039),
-[Measuring Sample Quality with Diffusions](https://arxiv.org/abs/1611.06972),
-[Measuring Sample Quality with Kernels](https://arxiv.org/abs/1703.01717).
+* [Measuring Sample Quality with Stein's Method](http://arxiv.org/abs/1506.03039)
+* [Measuring Sample Quality with Diffusions](https://arxiv.org/abs/1611.06972)
+* [Measuring Sample Quality with Kernels](https://arxiv.org/abs/1703.01717)
 
 All the papers above introduce and explain the significance of the Stein
 discrepancy.  The first paper has a more gentle introduction describing how
