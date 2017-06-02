@@ -13,9 +13,13 @@ if parallel == "true"
 end
 
 using Distributions: Beta
-using SteinDistributions: SteinUniform
-using SteinKernels: SteinChampionLenardMillsKernel
-using SteinDiscrepancy: stein_discrepancy
+using SteinDistributions:
+    SteinUniform,
+    gradlogdensity
+using SteinDiscrepancy:
+    SteinChampionLenardMillsKernel,
+    ksd,
+    gsd
 
 # random number generator seed
 # we allow this to be set on the commandline
@@ -45,9 +49,15 @@ elseif discrepancytype == "graph-clp"
 end
 # Draw samples from target distribution
 if distname == "beta"
+    target = beta_target
     X = @setseed reshape(rand(beta_target, d*maxn), maxn, d)
 elseif distname == "uniform"
+    target = uniform_target
     X = @setseed rand(uniform_target, maxn)
+end
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
 end
 # Sample sizes at which optimization problem will be solved
 ns = vcat(10:1:min(10,maxn),
@@ -65,18 +75,16 @@ for i in ns
     solvetime = nothing
     if kernel != nothing
         @printf("[Beginning kernel computations n=%d]\n", i)
-        result = stein_discrepancy(points=Xi,
-                                   target=uniform_target,
-                                   method="kernel",
-                                   kernel=kernel)
+        result = ksd(points=Xi, gradlogdensity=gradlogp, kernel=kernel)
         discrepancy = sqrt(result.discrepancy2)
         solvetime = result.solvetime
     elseif discrepancytype in ["graph-clp", "graph-gurobi"]
         @printf("[Beginning graph solver n=%d]\n", i)
-        result = stein_discrepancy(points=Xi,
-                                   target=uniform_target,
-                                   method="graph",
-                                   solver=graphsolver)
+        result = gsd(points=Xi,
+                     gradlogdensity=gradlogp,
+                     supportlowerbounds=zeros(d),
+                     supportupperbounds=ones(d),
+                     solver=graphsolver)
         discrepancy = sum(result.objectivevalue)
         solvetime = sum(result.solvetime)
     end

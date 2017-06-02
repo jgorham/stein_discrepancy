@@ -29,9 +29,15 @@ end
 
 using Distributions: MvNormal
 
-using SteinDistributions: SteinGMM
-using SteinKernels: SteinInverseMultiquadricKernel
-using SteinDiscrepancy: stein_discrepancy, wasserstein1d
+using SteinDistributions:
+    SteinGMM,
+    gradlogdensity,
+    cdf
+using SteinDiscrepancy:
+    SteinInverseMultiquadricKernel,
+    ksd,
+    gsd,
+    wasserstein1d
 
 # select largest n
 maxn = 30000
@@ -51,6 +57,10 @@ gmmmus = hcat(gmmmus, zeros(2, d-1))
 gmmsigmas = eye(d)
 gmmweights = [0.5, 0.5]
 target = SteinGMM(gmmmus, gmmsigmas)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # Sample sizes at which optimization problem will be solved
 ns = vcat([5],
           10:10:min(100,maxn),
@@ -76,9 +86,9 @@ for i in ns
     gradg = nothing
     operatorg = nothing
     if discrepancytype == "graph"
-        res = stein_discrepancy(points=X[1:i,:],
-                                target=target,
-                                solver=solver)
+        res = gsd(points=X[1:i,:],
+                  gradlogdensity=gradlogp,
+                  solver=solver)
         objectivevalue = res.objectivevalue
         edgetime = res.edgetime
         solvetime = res.solvetime
@@ -88,15 +98,15 @@ for i in ns
         operatorg = res.operatorg
     elseif discrepancytype == "kernel"
         kernel = SteinInverseMultiquadricKernel()
-        res = stein_discrepancy(points=X[1:i,:],
-                                target=target,
-                                method="kernel",
-                                kernel=kernel)
+        res = ksd(points=X[1:i,:],
+                  gradlogdensity=gradlogp,
+                  kernel=kernel)
         objectivevalue = sqrt(res.discrepancy2)
         solvetime = res.solvetime
     elseif discrepancytype == "wasserstein"
         @assert (d == 1)
-        (objectivevalue, error) = wasserstein1d(X[1:i,:], target=target)
+        (objectivevalue, error) = wasserstein1d(X[1:i,:],
+                                                targetcdf=x::Float64 -> cdf(target, x))
     end
 
     println("\tn = $(i), objective = $(objectivevalue)")

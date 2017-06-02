@@ -18,10 +18,11 @@ addprocs(CPU_CORES - 1)
 
 using DataFrames
 
-using SteinDiscrepancy: langevin_kernel_discrepancy
 using SteinDistributions:
-    SteinLogisticRegressionGaussianPrior
-using SteinKernels:
+    SteinLogisticRegressionGaussianPrior,
+    gradlogdensity
+using SteinDiscrepancy:
+    ksd,
     SteinGaussianKernel,
     SteinGaussianPowerKernel,
     SteinMaternRadialKernel,
@@ -36,7 +37,7 @@ include("experiment_utils.jl")
 # set the sampler
 @parsestringcli sampler "r" "sampler" "SGFS-f"
 # set the kernel
-@parsestringcli kernelname "k" "kernel" "multiquadric"
+@parsestringcli kernelname "k" "kernel" "inversemultiquadric"
 kernel = nothing
 # Setup the data
 data_set = "mnist"
@@ -62,6 +63,10 @@ distname = "logisticgaussianprior"
 sigma2 = 1.0
 # setup distribution
 target = SteinLogisticRegressionGaussianPrior(X, y, zeros(d), sigma2 .* ones(d))
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # number of burnin samples
 b = 50000
 
@@ -73,12 +78,11 @@ if sampler in ["SGFS-d", "SGFS-f"]
     betas = convert(Array, readtable(sample_filename, header=false))
     betas = betas[(b+1):end,:]
     n = size(betas,1)
-    weights = (1.0/n) * ones(n)
 
     # checkpoints for the kernel
     checkpoints = vcat(100:100:min(1000,n),
-                       2000:1000:min(n, 10000),
-                       20000:10000:min(n, 100000))
+                       2000:1000:min(n,10000),
+                       20000:10000:min(n,100000))
     if checkpoints[end] != n
         push!(checkpoints, n)
     end
@@ -93,10 +97,9 @@ if sampler in ["SGFS-d", "SGFS-f"]
         kernel = SteinInverseMultiquadricKernel(0.5)
     end
     # Compute Stein discrepancy
-    res = @setseed seed langevin_kernel_discrepancy(
-        betas,
-        weights,
-        target;
+    res = @setseed seed ksd(
+        points=betas,
+        gradlogdensity=gradlogp,
         kernel=kernel,
         checkpoints=checkpoints)
 

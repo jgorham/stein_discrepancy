@@ -4,9 +4,14 @@
 # discrepancy and kernel discrepancy obtained when samples are drawn i.i.d.
 # from their targets.
 
-using SteinDistributions: SteinGaussian, SteinScaleLocationStudentT
-using SteinKernels: SteinGaussianKernel
-using SteinDiscrepancy: stein_discrepancy
+using SteinDistributions:
+    SteinGaussian,
+    SteinScaleLocationStudentT,
+    gradlogdensity
+using SteinDiscrepancy:
+    SteinGaussianKernel,
+    ksd,
+    gsd
 
 include("experiment_utils.jl")
 
@@ -38,7 +43,10 @@ if distname == "studentt"
 elseif distname == "gaussian"
     target = SteinGaussian(d)
 end
-
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # Draw samples from target distribution
 X = @setseed rand(target,maxn)
 # Sample sizes at which optimization problem will be solved
@@ -55,18 +63,16 @@ for i in ns
     discrepancy = solvetime = nothing
     if kernel != nothing
         @printf("[Beginning kernel computations n=%d]\n", i)
-        result = stein_discrepancy(points=Xi,
-                                   target=gaussian_target,
-                                   method="kernel",
-                                   kernel=kernel)
+        result = ksd(points=Xi,
+                     gradlogdensity=gradlogp,
+                     kernel=kernel)
         discrepancy = sqrt(result.discrepancy2)
         solvetime = result.solvetime
     elseif discrepancytype == "graph"
         @printf("[Beginning graph solver n=%d]\n", i)
-        result = stein_discrepancy(points=Xi,
-                                   target=gaussian_target,
-                                   method="graph",
-                                   solver=graphsolver)
+        result = gsd(points=Xi,
+                     gradlogdensity=gradlogp,
+                     solver=graphsolver)
         discrepancy = sum(result.objectivevalue)
         solvetime = sum(result.solvetime)
     end
