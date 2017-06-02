@@ -453,18 +453,19 @@ function _speedyproposaltest(d::SteinPosterior,
     mu0 = (logu - lprior) / N
 
     significancelevel = 1.0
+    prevbatchend = 1
     currbatchsize = 0
     ldiffmean = 0.0
     perm = randperm(N)
+    ldiffs = Float64[]
 
     while (currbatchsize < N) && (significancelevel > epsilon)
         currbatchsize = min(currbatchsize + batchsize, N)
-        ldiffs = Float64[]
-        for yidx in perm[1:currbatchsize]
+        for yidx in perm[prevbatchend:currbatchsize]
             push!(
                 ldiffs, (
-                    loglikelihood(d, thetaprop; idx=yidx) -
-                    loglikelihood(d, theta; idx=yidx)
+                    loglikelihood(d, thetaprop; idx=yidx:yidx) -
+                    loglikelihood(d, theta; idx=yidx:yidx)
                 )
             )
         end
@@ -475,6 +476,7 @@ function _speedyproposaltest(d::SteinPosterior,
         tdist = TDist(currbatchsize - 1)
 
         significancelevel = ccdf(tdist, abs(tstat))
+        prevbatchend += batchsize
     end
 
     ldiffmean > mu0, currbatchsize
