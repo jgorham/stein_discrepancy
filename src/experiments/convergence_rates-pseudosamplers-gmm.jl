@@ -8,26 +8,24 @@
 #
 # with all the desired parameters used here.
 
-using MAT
-
-using SteinDistributions: SteinGMM, SteinDiscrete
-using SteinDiscrepancy: stein_discrepancy, wasserstein1d, approxwasserstein
-
 include("experiment_utils.jl")
 
 # this controls the seed used for the approximating the wasserstein metric
 @parseintcli seed "s" "seed" 7
 # the dimension of the space
 @parseintcli d "d" "dimension" 1
-# the sampler
+# the sampler ["FW", "FCFW", "IID", "QMC"]
 @parsestringcli sampler "q" "sampler" "IID"
 # the gap between the two modes
 @parseintcli gap "g" "gap" 5
 # approx wasserstein sample sizes
 @parseintcli wasserstein_n "w" "wassersteinn" 5000
 
-# Solve optimization problem for each sampler at each sample size
-# samplers = ["FW", "FCFW", "IID", "QMC"]
+using MAT
+
+using SteinDistributions: SteinGMM, SteinDiscrete, cdf, rand, gradlogdensity
+using SteinDiscrepancy: gsd, wasserstein1d, approxwasserstein
+
 # Select an optimization problem solver
 #solver = "clp"
 solver = "gurobi"
@@ -51,6 +49,10 @@ gmmweights = vec(samples["pi_prob"])
 gmmsigmas = samples["Sigma_mix"]
 gmmmus = samples["mu_mix"]
 target = SteinGMM(gmmmus, gmmsigmas, gmmweights)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 if sampler == "IID"
     # we use our own iid sampler so we can run multiple seeds
     X = rand(target, n)
@@ -62,27 +64,26 @@ ns = vcat(10:10:min(1000,n))
 for i in ns
     sampleweights = vec(pointweights[i+1,1:i])
     # Compute Stein discrepancy for first i points in this trial
-    res = stein_discrepancy(points=X[1:i,:],
-                            weights=sampleweights,
-                            target=target,
-                            solver=solver)
+    res = gsd(points=X[1:i,:],
+              weights=sampleweights,
+              gradlogdensity=gradlogp,
+              solver=solver)
     println("\tn = $(i), objective = $(res.objectivevalue)")
     wasserstein = Inf
     wasserstein_lb = Inf
     wasserstein_ub = Inf
     if d == 1
-       (wasserstein, error) = wasserstein1d(X[1:i,:],
-                                            weights=sampleweights,
-                                            target=target)
+        (wasserstein, error) = wasserstein1d(X[1:i,:],
+                                             weights=sampleweights,
+                                             targetcdf=x::Float64 -> cdf(target, x))
         wasserstein_lb = wasserstein - error
         wasserstein_ub = wasserstein + error
     else
         (wasserstein_lb, wasserstein_ub) =
             @setseed seed approxwasserstein(points=X[1:i,:],
                                             weights=sampleweights,
-                                            target=target,
-                                            solver=solver,
-                                            samplesize=wasserstein_n)
+                                            targetsamplegen=() -> rand(target, wasserstein_n),
+                                            solver=solver)
         wasserstein = (wasserstein_lb + wasserstein_ub) / 2
     end
     # Package and save results

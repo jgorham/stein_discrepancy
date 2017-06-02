@@ -13,16 +13,17 @@
 # binary outcomes indicating whether cancer has spread to surrounding lymph
 # nodes.
 
-using RDatasets
-using StatsFuns: logistic
-using SteinDiscrepancy: stein_discrepancy
-using SteinDistributions: SteinLogisticRegressionGaussianPrior
-using SteinSamplers: runapproxmh
-
 include("experiment_utils.jl")
 
 # Set random number generator seed
 @parseintcli seed "s" "seed" 37
+
+using RDatasets
+using StatsFuns: logistic
+using SteinDiscrepancy: gsd
+using SteinDistributions: SteinLogisticRegressionGaussianPrior, gradlogdensity
+using SteinSamplers: runapproxmh
+
 # Select a solver for Stein discrepancy optimization problem
 #solver = "clp"
 solver = "gurobi"
@@ -44,6 +45,10 @@ q = ones(n, 1) ./ n
 distname = "logisticgaussianprior"
 # setup distribution
 target = SteinLogisticRegressionGaussianPrior(X, y)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # intiial guess for beta
 beta0 = zeros(d)
 # burnin likelihoods
@@ -80,9 +85,8 @@ for epsilon = epsilons
     for i in ns
         println("Beginning optimization for n=$(i), d=$(d), epsilon=$(epsilon)")
         # Compute Stein discrepancy for first i points
-        (betai, qi) = (betas[idx[1:i],:], q[1:i] .* (n / i))
-        res = stein_discrepancy(points=betai, weights = qi, target=target,
-                                solver=solver)
+        betai = betas[idx[1:i],:]
+        res = gsd(points=betai, gradlogdensity=gradlogp, solver=solver)
         println("\tn = $(i), objective = $(res.objectivevalue)")
 
         # Package and save results
@@ -97,7 +101,6 @@ for epsilon = epsilons
             "epsilon" => epsilon,
             "batchsize" => batchsize,
             "X" => betai,
-            "q" => qi,
             "xnorm" => res.xnorm,
             "edges" => edge_pairs,
             "g" => res.g,

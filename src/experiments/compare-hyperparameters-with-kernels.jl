@@ -4,26 +4,26 @@
 # step size hyperparameter settings of a Stochastic Gradient Langevin Dynamics
 # sampler for a Gaussian mixture model posterior target distribution.
 
+include("experiment_utils.jl")
+
+# set the discrepancy
+@parsestringcli discrepancytype "k" "discrepancytype" "maternradial"
+
 using Iterators: product
 
 using SteinDistributions:
     SteinGMMPosterior,
     randgmm,
     numdimensions,
-    numdatapoints
-using SteinKernels:
+    numdatapoints,
+    gradlogdensity
+using SteinDiscrepancy:
     SteinGaussianKernel,
     SteinMaternRadialKernel,
     SteinGaussianPowerKernel,
-    SteinInverseMultiquadricKernel
-using SteinDiscrepancy:
-    stein_discrepancy
+    SteinInverseMultiquadricKernel,
+    ksd
 using SteinSamplers: runsgld
-
-include("experiment_utils.jl")
-
-# set the discrepancy
-@parsestringcli discrepancytype "k" "discrepancytype" "maternradial"
 
 ## Experiment settings
 # Target size of sample to draw from sampler
@@ -59,6 +59,10 @@ save_json(
 )
 # Create posterior distribution based on dataset
 target = SteinGMMPosterior(y)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # Fix mini-batch size
 batchsize = 5
 # Number of sweeps to make through the data
@@ -95,10 +99,7 @@ for (epsilon, seed) in product(epsilons, seeds)
     res = nothing
     @trycatchcontinue(
         begin
-            res = stein_discrepancy(points=X[1:n,:],
-                                    target=target,
-                                    method="kernel",
-                                    kernel=kernel)
+            res = ksd(points=X[1:n,:], gradlogdensity=gradlogp, kernel=kernel)
         end,
         println("[n=$(n)|sampler=$(distname)]:")
     )

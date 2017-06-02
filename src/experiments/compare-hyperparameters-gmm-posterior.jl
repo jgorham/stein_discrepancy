@@ -29,10 +29,12 @@ using SteinDistributions:
     SteinGMMPosterior,
     randgmm,
     numdimensions,
-    numdatapoints
-using SteinKernels:
-    SteinInverseMultiquadricKernel
-using SteinDiscrepancy: stein_discrepancy
+    numdatapoints,
+    gradlogdensity
+using SteinDiscrepancy:
+    SteinInverseMultiquadricKernel,
+    ksd,
+    gsd
 using SteinSamplers:
     runsgld,
     runapproxslice
@@ -58,6 +60,10 @@ save_json(
 )
 # Create posterior distribution based on dataset
 target = SteinGMMPosterior(y)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # set the kernel
 kernel = nothing
 if discrepancytype == "inversemultiquadric"
@@ -121,7 +127,7 @@ for (epsilon, seed) in product(epsilons, seeds)
         res = nothing
         @trycatchcontinue(
             begin
-                res = stein_discrepancy(points=points, target=target, solver=solver)
+                res = gsd(points=points, gradlogdensity=gradlogp, solver=solver)
             end,
             println("[n=$(n)|sampler=$(distname)]:")
         )
@@ -130,10 +136,7 @@ for (epsilon, seed) in product(epsilons, seeds)
         edgetime = res.edgetime
         solvetime = res.solvetime
     elseif kernel != nothing
-        res = stein_discrepancy(points=points,
-                                target=target,
-                                method="kernel",
-                                kernel=kernel)
+        res = ksd(points=points, gradlogdensity=gradlogp, kernel=kernel)
         objectivevalue = sqrt(res.discrepancy2)
         solvetime = res.solvetime
     end

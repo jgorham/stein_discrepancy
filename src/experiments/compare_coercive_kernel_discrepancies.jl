@@ -4,23 +4,6 @@
 # for the possibility that distributions could diverge
 # infinity and look suitable vis-a-vis the KSD.
 
-# parallelize now!
-addprocs(CPU_CORES - 1)
-
-using Distributions: Exponential
-using Iterators: product
-
-using SteinDistributions:
-    SteinGaussian,
-    SteinScaleLocationStudentT
-using SteinKernels:
-    SteinGaussianKernel,
-    SteinMaternRadialKernel,
-    SteinGaussianPowerKernel,
-    SteinInverseMultiquadricKernel
-using SteinDiscrepancy:
-    langevin_kernel_discrepancy
-
 include("experiment_utils.jl")
 
 # dimension of the problem
@@ -31,9 +14,37 @@ include("experiment_utils.jl")
 @parsestringcli samplesource "Q" "samplesource" "gaussian"
 # set the discrepancy
 @parsestringcli discrepancytype "k" "discrepancytype" "inversemultiquadric"
+# should we use multiple cores?
+@parseintcli numcores "n" "numcores" 1
+# parallelize it
+if (numcores > 1)
+    if (numcores > CPU_CORES)
+        error(@sprintf("Requested %d cores, only %d available.", numcores, CPU_CORES))
+    end
+    addprocs(numcores - 1)
+    @assert (numcores == nprocs())
+end
+
+using Distributions: Exponential
+using Iterators: product
+
+using SteinDistributions:
+    SteinGaussian,
+    SteinScaleLocationStudentT,
+    gradlogdensity
+using SteinDiscrepancy:
+    SteinGaussianKernel,
+    SteinMaternRadialKernel,
+    SteinGaussianPowerKernel,
+    SteinInverseMultiquadricKernel,
+    ksd
 
 # specify the target distribution
 target = SteinGaussian(d)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # set up student t distribution
 df = 10.0
 studentt = SteinScaleLocationStudentT(df, 0.0, sqrt((df-2.0)/df))
@@ -128,12 +139,7 @@ while continueloop
         X = @setseed seed packsphererandom(ii, d)
         continueloop = (idx < length(ns))
     end
-    # set the weights
-    weights = ones(ii) ./ ii
-    kernelresult = langevin_kernel_discrepancy(X,
-                                               weights,
-                                               target;
-                                               kernel=kernel)
+    kernelresult = ksd(points=X, gradlogdensity=gradlogp, kernel=kernel)
     kerneldiscrepancy = sqrt(kernelresult.discrepancy2)
     solvetime = kernelresult.solvetime
     # save data

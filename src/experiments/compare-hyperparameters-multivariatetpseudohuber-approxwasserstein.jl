@@ -2,10 +2,14 @@
 #
 # This script tries to compute an approximation of the wasserstein metric
 # for the samples drawn from the Bayesian regession for the AIS dataset.
-
-using SteinDiscrepancy: wassersteindiscrete, wasserstein1d
+#
+# NOTE: Make sure you have run the compare-hyperparameters-multivariatetpseudohuber
+# script, as this script uses the samples created from that run in order to
+# compute the approximation wasserstein measures.
 
 include("experiment_utils.jl")
+
+using SteinDiscrepancy: wassersteindiscrete, wasserstein1d
 
 # this controls the seed used for the subsampling
 @parseintcli seed "s" "seed" 7

@@ -6,11 +6,11 @@
 # Before running this script, run src/experiments/pseudosample/pseudosample.m from the
 # repository base directory to generate pseudosamples.
 
-using MAT
-using SteinDistributions: SteinUniform
-using SteinDiscrepancy: stein_discrepancy
-
 include("experiment_utils.jl")
+
+using MAT
+using SteinDistributions: SteinUniform, gradlogdensity, supportlowerbound, supportupperbound
+using SteinDiscrepancy: gsd
 
 # Load generated pseudosamples from experiment results directory
 experdir = joinpath("src", "experiments", "pseudosample", "results", "pseudosample")
@@ -28,7 +28,14 @@ d = 1
 distname = "uniform"
 # Independent Uniform([0.0,1.0]) with best known Stein constants
 (c1,c2,c3) = (0.5,0.5,1.0)
-target = SteinUniform(d, c1, c2, c3)
+target = SteinUniform(d)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
+# get the support
+lowerbounds = [supportlowerbound(target, 1)]
+upperbounds = [supportupperbound(target, 1)]
 # Sample sizes at which optimization problem will be solved
 ns = 1:200
 # Solve optimization problem for each sampler at each sample size
@@ -44,8 +51,14 @@ for sampler in samplers, i = ns
 
     for trial in 1:numtrials
         # Compute Stein discrepancy for first i points in this trial
-        res = stein_discrepancy(points=simulateddata[1:i,trial]'', target=target,
-                                solver=solver)
+        res = gsd(points=simulateddata[1:i,trial]'',
+                  gradlogdensity=gradlogp,
+                  c1=c1,
+                  c2=c2,
+                  c3=c3,
+                  supportlowerbounds=lowerbounds,
+                  supportupperbounds=upperbounds,
+                  solver=solver)
         println("\tn = $(i), objective = $(res.objectivevalue)")
 
         # Package and save results

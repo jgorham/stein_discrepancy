@@ -13,12 +13,6 @@
 # The regression tries to model the relationship between a few exploratory
 # variables and the levels of Radon present in houses.
 
-using DataFrames
-
-using SteinDiscrepancy: stein_discrepancy
-using SteinDistributions: SteinHuberLossRegressionGaussianPrior
-using SteinSamplers: runapproxmh
-
 include("experiment_utils.jl")
 
 # Set random number generator seed
@@ -26,10 +20,16 @@ include("experiment_utils.jl")
 # set the epsilon param
 @parsestringcli epsiloninput "e" "epsilon" "1e-5"
 epsilon = float(epsiloninput)
+
+using DataFrames
+
+using SteinDiscrepancy: gsd
+using SteinDistributions: SteinHuberLossRegressionGaussianPrior, gradlogdensity
+using SteinSamplers: runapproxmh
+
 # Select a solver for Stein discrepancy optimization problem
 #solver = "clp"
 solver = "gurobi"
-
 # Setup the data
 data_set = "radon"
 rdat = readtable("src/experiments/radon/srrs2.dat")
@@ -61,6 +61,10 @@ q = ones(n, 1) ./ n
 distname = "huberloss-gaussianprior"
 # setup distribution
 target = SteinHuberLossRegressionGaussianPrior(X, y)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # intiial guess is OLS estimate
 beta0 = inv(X' * X) * (X' * y)
 # burnin likelihoods
@@ -94,9 +98,7 @@ for i in ns
     println("Beginning optimization for n=$(i), d=$(d), epsilon=$(epsilon)")
     # Compute Stein discrepancy for first i points
     betai = betas[idx[1:i],:]
-    res = stein_discrepancy(points=betai,
-                            target=target,
-                            solver=solver)
+    res = gsd(points=betai, gradlogdensity=gradlogp, solver=solver)
     println("\tn = $(i), objective = $(res.objectivevalue)")
 
     instance_data = Dict{Any, Any}(

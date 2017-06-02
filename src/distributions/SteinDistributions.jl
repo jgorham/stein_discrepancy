@@ -20,7 +20,6 @@ SteinHuberLossRegressionGaussianPrior,
 SteinProbitRegression,
 SteinScaleLocationStudentT,
 SteinUniform,
-SteinBanana,
 SteinHierarchericalPoisson,
 SteinSquaredFourierSumDensity,
 # Common functions operating on distributions
@@ -54,8 +53,6 @@ gradloglikelihood,
 rand,
 # random GMM samples
 randgmm,
-# random SteinBanana samples
-randbanana,
 # random procedure for SteinHierarchericalPoisson
 rungibbs
 
@@ -77,7 +74,6 @@ include("SteinHuberLossRegressionGaussianPrior.jl")
 include("SteinProbitRegression.jl")
 include("SteinScaleLocationStudentT.jl")
 include("SteinUniform.jl")
-include("SteinBanana.jl")
 include("SteinHierarchericalPoisson.jl")
 include("SteinSquaredFourierSumDensity.jl")
 end

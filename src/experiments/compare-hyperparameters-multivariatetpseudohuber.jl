@@ -3,12 +3,6 @@
 # This script compares the quality of samples drawn
 # from a Bayesian regession for the AIS dataset.
 
-using DataFrames
-
-using SteinDiscrepancy: stein_discrepancy
-using SteinDistributions: SteinMultivariateStudentTRegressionPseudoHuberPrior
-using SteinSamplers: runsgrld
-
 include("experiment_utils.jl")
 include("ais/ais_utils.jl")
 
@@ -23,9 +17,17 @@ nu = float(clinu)
 # set the nu param degrees of freedom for the d-distribution
 @parsestringcli clidelta "d" "delta" "0.1"
 delta = float(clidelta)
+
+using DataFrames
+
+using SteinDiscrepancy: gsd
+using SteinDistributions:
+    SteinMultivariateStudentTRegressionPseudoHuberPrior,
+    gradlogdensity
+using SteinSamplers: runsgrld
+
 # Select a solver for Stein discrepancy optimization problem
-#eval(Expr(:import,:Clp))
-#solver = Main.Clp.ClpSolver(SolveType=5,LogLevel=4)
+#solver = "clp"
 solver = "gurobi"
 # distname is multivariatetpseudohuber
 distname = "multivariatetpseudohuber"
@@ -49,6 +51,10 @@ y = (y - mean(y)) / std(y)
 # create posterior distribution
 sigma = Diagonal(ones(size(X,1)))
 target = SteinMultivariateStudentTRegressionPseudoHuberPrior(X, y, nu, sigma, zeros(d), delta)
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
 # starting beta0
 beta0 = getapproxmode(target)
 # batchsize for SGRLD algorithm
@@ -94,12 +100,12 @@ for epsilon in epsilons
 
     # Find stein discrepancy
     @printf("[Computing the stein discrepancy]\n")
-    result = @setseed seed stein_discrepancy(points=betas,
-                                             solver=solver,
-                                             target=target,
-                                             operator="riemannian-langevin",
-                                             volatility_covariance=volatility_covariance,
-                                             grad_volatility_covariance=grad_volatility_covariance)
+    result = @setseed seed gsd(points=betas,
+                               solver=solver,
+                               gradlogdensity=gradlogp,
+                               operator="riemannian-langevin",
+                               volatility_covariance=volatility_covariance,
+                               grad_volatility_covariance=grad_volatility_covariance)
 
     instance_data = Dict{Any, Any}(
         "distname" => distname,

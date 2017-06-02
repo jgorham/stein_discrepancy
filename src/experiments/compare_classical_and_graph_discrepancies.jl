@@ -5,10 +5,11 @@
 # We use non-uniform discrepancies with the best Stein factors drawn from the
 # literature to enable comparison with a lower-bounding Wasserstein distance.
 
-using SteinDistributions: SteinGaussian, SteinUniform
-using SteinDiscrepancy: stein_discrepancy, wasserstein1d
-
 include("experiment_utils.jl")
+
+using SteinDistributions: SteinGaussian, SteinUniform, gradlogdensity,
+    supportlowerbound, supportupperbound, cdf
+using SteinDiscrepancy: stein_discrepancy, wasserstein1d
 
 # random number generator seed
 # we allow this to be set on the commandline
@@ -22,13 +23,22 @@ n = 30000
 if distname == "uniform"
     # Independent Uniform([0.0,1.0]) with best known Stein constants
     (c1,c2,c3) = (0.5,0.5,1.0)
-    target = SteinUniform(d, c1, c2, c3)
+    target = SteinUniform(d)
 elseif distname == "gaussian"
     # Independent standard Gaussians with best known Stein constants
     (c1,c2,c3) = (1.0,4.0,2.0)
-    target = SteinGaussian(d, c1, c2, c3)
+    target = SteinGaussian(d)
 end
-
+lowerbounds = [supportlowerbound(target, 1)]
+upperbounds = [supportupperbound(target, 1)]
+# define gradlogp
+function gradlogp(x::Array{Float64,1})
+    gradlogdensity(target, x)
+end
+# define targetcdf
+function targetcdf(x::Float64)
+    cdf(target, x)
+end
 # setup solvers for stein optimization problem
 #graphsolver = classicalsolver = nothing
 graphsolver = classicalsolver = "gurobi"
@@ -39,7 +49,7 @@ X = @setseed rand(target, n)
 ns = vcat(100:100:min(1000,n), 2000:1000:min(10000,n), 20000:10000:n)
 
 # Solve optimization problem at each sample size
-for i = ns
+for i in ns
     @printf("[Beginning n=%d]\n", i)
     # Create program with data subset
     Xi = X[1:i,:]
@@ -48,22 +58,34 @@ for i = ns
     classicalsolvetime = graphsolvetime = nothing
     if classicalsolver != nothing
         @printf("[Beginning classical solver n=%d]\n", i)
-        classicalresult = stein_discrepancy(points=Xi, target=target,
+        classicalresult = stein_discrepancy(points=Xi,
+                                            gradlogdensity=gradlogp,
                                             solver=classicalsolver,
-                                            method="classical")
+                                            method="classical",
+                                            c1=c1,
+                                            c2=c2,
+                                            c3=c3,
+                                            supportlowerbounds=lowerbounds,
+                                            supportupperbounds=upperbounds)
         classicalobjective = classicalresult.objectivevalue
         classicalsolvetime = classicalresult.solvetime
     end
     if graphsolver != nothing
         @printf("[Beginning graph solver n=%d]\n", i)
-        graphresult = stein_discrepancy(points=Xi, target=target,
-                                        solver=graphsolver)
+        graphresult = stein_discrepancy(points=Xi,
+                                        gradlogdensity=gradlogp,
+                                        solver=graphsolver,
+                                        c1=c1,
+                                        c2=c2,
+                                        c3=c3,
+                                        supportlowerbounds=lowerbounds,
+                                        supportupperbounds=upperbounds)
         graphobjective = graphresult.objectivevalue
         graphsolvetime = graphresult.solvetime
     end
 
     @printf("[Computing wasserstein distance n=%d]\n", i)
-    (wassdist, error) = wasserstein1d(points=Xi, target=target)
+    (wassdist, error) = wasserstein1d(Xi, targetcdf=targetcdf)
 
     # save data
     instance_data = Dict{Any, Any}(
