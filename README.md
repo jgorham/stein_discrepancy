@@ -35,4 +35,4 @@ parameters gap and seed (defined in the script) to be 5 and 10 respectively.
 All experiment results will be deposited in the directory `results`
 in the base directory.
 
-For more information, see [SteinDiscrepancy.jl](https://github.com/jgorham/SteinDiscrepancy.jl).
+For more information, see [SteinDiscrepancy.jl](https://jgorham.github.io/SteinDiscrepancy.jl/).
