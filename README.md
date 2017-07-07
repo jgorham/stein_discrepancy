@@ -2,7 +2,7 @@
 
 This repo contains many experiments that utilize the *Stein discrepancy*.  The
 experiments here use the Julia package
-[SteinDiscrepancy.jl](https://github.com/jgorham/SteinDiscrepancy.jl) and
+[SteinDiscrepancy.jl](https://jgorham.github.io/SteinDiscrepancy.jl/) and
 implement all the experiments from the following papers:
 
 * [Measuring Sample Quality with Stein's Method](http://arxiv.org/abs/1506.03039)
