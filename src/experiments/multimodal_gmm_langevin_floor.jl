@@ -70,6 +70,10 @@ ns = vcat([5],
 
 if sampler == "iid"
     X = @setseed rand(target, maxn)
+    if discrepancytype == "kernel"
+        # this is so the g-h plot in paper are in same range
+        X = -X
+    end
 elseif sampler == "unimodal"
     wrongtarget = MvNormal(vec(gmmmus[1,:]), gmmsigmas)
     X = @setseed rand(wrongtarget, maxn)'
